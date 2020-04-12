@@ -1,0 +1,19 @@
+# Task 1 for Creating Directory
+```
+mkdir  -p   a/{b/{d/{i/m/z,j/l/z},e/h/l/z},c/{f/h/l/z,g/k/l/z}}
+```
+
+# Task 2 permission for Date Command
+```
+
+```
+
+# Task 3 Copy data from user1 to user 2 through norma user accounts
+```
+
+```
+
+# Task 4 Run Cal command for 10sec and store output in a file
+```
+
+```
