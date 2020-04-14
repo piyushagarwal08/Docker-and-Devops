@@ -1,0 +1,21 @@
+# TASK1
+Write python/shell script to launch 100 containers that keeps running even after reboot
+```
+#!/bin/bash
+count=1
+while [ $count -le 100 ]
+do
+  if [ $count -lt 26 ]
+  then
+    sudo docker container run -d --restart unless-stopped --name adhocnw$count alpine ping 8.8.8.8
+  elif [ $count -ge 26 && $count -le 50 ]
+  then
+    sudo docker container run -d --restart unless-stopped --name adhocnw$count fedora ping 8.8.8.8
+  elif [ $count -ge 51 && $count -le 75 ]
+  then
+    sudo docker container run -d --restart unless-stopped --name adhocnw$count centos ping 8.8.8.8
+  else
+    sudo docker container run -d --restart unless-stopped --name adhocnw$count java ping 8.8.8.8
+  fi
+done
+```
