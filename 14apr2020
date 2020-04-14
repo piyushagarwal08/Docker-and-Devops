@@ -41,7 +41,7 @@ get RAM & CPU consumption from 100 containers and store in text file
 count=1
 while [ $count -le 100 ]
 do
-    sudo docker container top adhocnw$count >> cpu
+    sudo docker container vmstat adhocnw$count >> cpu
     ((count++))
 done
 ```
