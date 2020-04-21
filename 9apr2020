@@ -1,0 +1,29 @@
+# Task 1 for Creating Directory
+```shell
+mkdir  -p   a/{b/{d/{i/m/z,j/l/z},e/h/l/z},c/{f/h/l/z,g/k/l/z}}
+```
+
+# Task 2 permission for Date Command
+```shell
+useradd -s /usr/bin/date user1
+setfacl -m u:user1:rwx /user/bin/date
+chmod -x /usr/bin/date
+```
+
+# Task 3 Copy data from user1 to user 2 through normal user accounts
+```
+
+```
+
+# Task 4 Run Cal command for 10sec and store output in a file
+```
+cat <<EOF > ./Task.sh
+#!/bin/bash
+while True
+do
+cal
+done
+EOF
+chmod +x Task.sh
+timeout 10s ./Task.sh > Output.txt
+```

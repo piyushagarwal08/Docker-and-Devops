@@ -1,0 +1,47 @@
+# TASK1
+Write python/shell script to launch 100 containers that keeps running even after reboot
+```
+#!/bin/bash
+count=1
+while [ $count -le 100 ]
+do
+  if [ $count -lt 26 ]
+  then
+    sudo docker container run -d --restart unless-stopped --name adhocnw$count alpine ping 8.8.8.8
+  elif [ $count -ge 26 && $count -le 50 ]
+  then
+    sudo docker container run -d --restart unless-stopped --name adhocnw$count fedora ping 8.8.8.8
+  elif [ $count -ge 51 && $count -le 75 ]
+  then
+    sudo docker container run -d --restart unless-stopped --name adhocnw$count centos ping 8.8.8.8
+  else
+    sudo docker container run -d --restart unless-stopped --name adhocnw$count java ping 8.8.8.8
+  fi
+  ((coun++))
+done
+```
+
+# TASK 2
+Write a combination of Docker and OS commands to get list of Name,Created of all containers and store them in a list
+```
+sudo docker ps -a | awk 'print{ $14, $5$6$7$8 }' > file
+```
+
+
+# TASK 3
+Run a container from local system using custom build Docker Image with parent process as firefox
+```
+do not have docker installed locally
+```
+
+# TASK 4
+get RAM & CPU consumption from 100 containers and store in text file
+```
+#!/bin/bash
+count=1
+while [ $count -le 100 ]
+do
+    sudo docker container vmstat adhocnw$count >> cpu
+    ((count++))
+done
+```
