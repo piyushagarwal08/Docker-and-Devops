@@ -163,7 +163,7 @@ Entrypoint cal
 3. Network (Optional)
 4. Volume (Optional)
 
-```
+```yaml
 version: '3.5'
 services:
  ashuapp11: #service name
@@ -199,7 +199,7 @@ services:
   image: dockerashu/ckad:v2
   container_name: ashucccc
   ports:
-     '11111:80`
+   - '11111:80`
 ```
 
 Notes: 
@@ -214,3 +214,92 @@ Notes:
 * using docker-compose stop is preferable
 * network-name is same as folder name in which it is created.
 
+## Docker Compose integration with DockerFile
+* Dockerfile
+```bash
+FROM centos
+MAINTAINER pykid
+ENV x=web1
+RUN dnf install httpd -y
+# you can use instead of yum
+ADD web1 /var/www/html
+ENTRYPOINT httpd -DFOREGROUND
+```
+* Docker-compose
+```yaml
+version: '3.8'
+services:
+ app1:
+  image: image-name-to-be-build # basically write the name of image supposed to be build from docker file
+  build: .  # location of docker file
+  container_name: pykidc1  # optional : if not given a random name is taken
+  ports:
+   - "9991:80"
+```
+
+* if docker file name is not ```Dockerfile```
+```yaml
+version: '3.8'
+services:
+ app1:
+  image: image-name-to-be-build # basically write the name of image supposed to be build from docker file
+  build: 
+   context: . #location of docker file
+   dockerfile: file-name # name of docker file
+  container_name: pykidc1  # optional : if not given a random name is taken
+  ports:
+   - "9991:80"
+  network:
+   - network-name # i want to use this bride but this is not present as of now
+  volume:
+   - vol-name:/path-to-attach
+
+networks:
+ network-name:   # this will create a network of this name
+volumes:
+ vol-name:     # this will create new volume
+```
+* If image is present already build then docker-compose will not build it again
+* But to rebuild the image, just use code
+    ```docker-compose up --build -d ```
+
+
+* docker run -itd --name webui -p 8388:9000 -v /var/run/docker.sock:/var/run/docker.sock   portainer/portainer
+* portainer's port no is 9000
+
+## Database Containers
+* Environment variables can be setup for easy database settings
+* ```-e``` is given for setting Environment Variables
+* ```mysql -u root -ppassword``` can be used to open mysql
+* In compose file, we can write a keyword ```depends_on:``` to make one service wait for another service to be ready
+
+```yaml
+version: '3.8'
+services: 
+ db:
+  image: mysql
+  command: --default-authentication-plugin:mysql_native_password
+  restart: always
+  environment:
+   MYSQL_ROOT_PASSWORD: redhat
+
+adminer:
+  image: adminer
+  restart: always
+  depends_on:
+   - db
+   - another-service-name
+  ports:
+   - 8080:8080
+```
+
+## ASSIGNMENT
+1. 
+    * Create A docker image with DJango/flask/html website and simple form in container
+    * Create another docker image for db and connect both
+2. Crate a container that can be used to create more containers
+    ```docker run -ti -v /var/run/docker.sock:/var/run/docker.sock docker``` uses image of docker not recommended
+3. Container is to be created for a website and when some change is created in the website, the container should be updated as well itself (using watch-tower)
+4. Write a Dockerfile
+    * Install httpd / nginx server
+    * Run httpd process from a non-root user
