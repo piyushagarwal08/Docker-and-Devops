@@ -11,6 +11,6 @@ RUN adduser --disabled-password --gecos '' pykid
 RUN usermod -aG pykid sudo
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 USER pykid
-RUN sudo apt-get install httpd -y
+RUN sudo apt-get install apache2 -y
 ```
 
