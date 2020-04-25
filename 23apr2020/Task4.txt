@@ -10,7 +10,7 @@ RUN apt-get install sudo
 RUN adduser --disabled-password --gecos '' pykid
 RUN usermod -aG pykid sudo
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-USER harsh
+USER pykid
 RUN sudo apt-get install httpd -y
 ```
 
