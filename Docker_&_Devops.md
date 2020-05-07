@@ -7,6 +7,11 @@
 * cgroups can limit the resources provided to a container
 * namespace is responsible for container isolation
 * Kubernetes is Container Run Time Engine
+* Mercurial is an example of distributed version system
+* Jenkins is written in Java(Pure)
+* To Add pass to a user , run
+    ```echo "my-user-passwd" | passwd user-name --stdin```
+* The sudoers file name can be anything just its locaition should be ````/etc/sudoers.d```
 
 ## Docker Images
 * These can be build using 3 methods
@@ -303,3 +308,116 @@ adminer:
 4. Write a Dockerfile
     * Install httpd / nginx server
     * Run httpd process from a non-root user
+
+
+# Continuous Integration / Continuous Development(Delivery) 
+
+## CI Tools                     ## CD Tools 
+1. gitlab                       1. Spinkar
+2. hudson                       2. Jenkins
+3. teamcity
+4. jenkins
+
+# JENKINS
+
+## Jenkins Installation
+* Follow ```wiki.jenkins.io``` website for proper installation
+* Always prefer ```Long Term Support(LTS) versions```
+* You need java (8+) 
+    * JDK Support
+* For Ubuntu
+```sh
+wget -q -O - https://pkg.jenkins.io/debian/jenkins.io.key | sudo apt-key add -
+sudo sh -c 'echo deb https://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
+sudo apt-get update
+sudo add-apt-repository universe
+sudo apt-get install jenkins
+```
+* To Start service ```systemctl start jenkins```
+* To Enable service ```systemctl enable jenkins```
+* Database location of jenkins is ```/var/lib/jenkins```
+* Jenkins can be accessed through 2 ways:
+    1. CLI
+    2. Web UI(127.0.0.1:8080)
+* Run jenkins in a container
+* To find all files in ubuntu run the command,
+    ```dpkg -s jenkins```
+* The configuration file for jenkins is ```/etc/sysconfig/jenkins```
+* Through configuration we can check/change the port/user/other default configurations for jenkins
+* To check the port no boundation in os ```ss -nlpt``` or ```netstat -nlpt```
+* jenkins is just a jvm process running in backend
+* jenkins for docker
+```sh
+docker run -itd --name jenkins1 -p 8080:8080 -v /var/jenkins_home ticketfly/jenkins-example-gradle-build
+```
+
+## Jenkins with Docker
+* By default, jenkins and docker can not communicate with each other
+* These both are daemons access to admin over an operating system but not connected together
+* To configure communication between both, add jenkins user to docker group by ```sudo usermod -aG docker jenkins```
+
+## Project
+* To start any project in jenkins or use its CI/CD service , we have following general steps:
+    1. Open the WEB GUI host ```127.0.0.1:8080```
+    2. Click on create new
+    3. Write description of project
+    3. Add files/code to work on
+    4. Set / Build trigers
+    5. Click on Build Now in left panel
+* The status of success/failure/pending is displayed through weather emoji's ```sunny the better```
+* Poll SCM ~> It is a service that can be configured in jenkins panel which lets the jenkin keep a check of git repo update at specific interval of time
+
+* Crontab Syntax ```minutes hr date month day```
+* Example for every month at 9:30 ```30 9 1 * * ```
+* Every 15 minute   ```*/15 * * * *```
+* Every minute ```* * * * *```
+
+
+* Jenkins can be connected to multiple host docker engines using ansible
+
+
+# Ansible 
+* It can be used to automate
+    1. Linux Servers
+    2. Windows Servers
+    3. Cloud Servers
+    4. Cisco Devices
+    5. VmWare Devices
+    6. Kubernetes
+               and many more..
+* Can only be installed on Linux Based OS
+* It uses connectors to connect with different serers:
+    1. ssh ~ linux
+    2. WInRn ~ Windows
+    3. NetConf / NetworkCLI ~ Cisco
+
+## Ansible Syntax
+* For /etc/ansible/hosts
+```
+[group-name]
+ip-1
+ip-2
+34.238.124.194
+
+[group-name2]
+ip-3
+ip-1
+```
+* Working Workflow
+Ansible ~> Configure file ~> Inventory ~> ssh ~> Parallel to all systems
+where, inventory file = /etc/ansible/host
+* to run simple adhoc command ``` ansible group-name1,group-name2 -u user-name -m ping -k```
+* ```-k``` ~> to take password
+* To get the list modules ```ansible-doc -l```
+* Its not a service based tool
+* Ansible Playbook
+```yaml
+ - hosts: group-name
+   remote_user: adhoc  # this is the target machine user
+   tasks:
+    - name: want to run date command
+      command: date
+    - name: create directory
+      command: mkdir /tmp/google    # another-module
+```
+* To run playbook ```ansible-playbook file-name.yaml -k```
