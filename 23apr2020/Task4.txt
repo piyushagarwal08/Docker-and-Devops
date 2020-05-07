@@ -4,29 +4,13 @@
 
 * Dockerfile
 ```sh
-FROM redhat
-MAINTAINER piyushagarwal
-COPY script.sh /
-RUN chmod +x script.sh
-RUN ./script.sh
-EXPOSE 8080
+FROM ubuntu
+RUN apt-get update
+RUN apt-get install sudo
+RUN adduser --disabled-password --gecos '' pykid
+RUN usermod -aG pykid sudo
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+USER pykid
+RUN sudo apt-get install apache2 -y
 ```
-* script.sh
-```sh
-cat <<EOF >> /etc/httpd/conf/httpd.conf
-User non-root
-Group non-root
-Listen 8080
-EOF
 
-chown -R non-root:non-root /var/log/httpd
-chown -R non-root:non-root /run/httpd
-
-cat <<EOF>> /usr/lib/tmpfiles.d/httpd.conf
-d /run/httpd   710  non-root  non-root
-d /run/httpd/htcacheclean   700 non-root non-root
-<EOF>
-
-
-* As non-root user simply run
-```/usr/sbin/httpd -k start```
