@@ -421,3 +421,77 @@ where, inventory file = /etc/ansible/host
       command: mkdir /tmp/google    # another-module
 ```
 * To run playbook ```ansible-playbook file-name.yaml -k```
+
+
+## Module Examples
+```yaml
+---
+ - hosts: localhost
+   tasks:
+    - name: running date command
+      command: date     # i am using date command to run locally
+    
+    - name: print hello world essage
+      debug: msg="hello world"
+```
+
+```yaml
+---
+ - hosts: localhost
+   tasks:
+    - name: installing httpd server
+      yum: name=httpd state=present
+
+    - name: starting service        # real OS not containers
+      service: name=httpd  state=started
+
+    - name: to start httpd service for containers
+      shell: httpd -DFOREGROUND
+
+```
+
+```yaml
+---
+ - hosts: localhost
+   vars:
+    x: httpd
+    y: hello
+   tasks:
+    - name: installing httpd
+      yum: 
+       name: "{{ x }}" # calling ansible variables
+       state: present
+
+    - name: start service in Real OS
+      service:
+       name: "{{ x }}"
+       state: started
+
+    - name:  starting service in container
+      shell: httpd -DFOREGROUND
+```
+
+* To virtually run/ execute any playbook, that is not to have any changes to system byt still execute playbook , we use command
+ ```ansible-playbook -C playbook-name.yml ```
+
+```yaml
+---
+ - hosts: localhost
+   tasks:
+    - name: installing frp software
+      yum:
+       name: ftp
+       state: present
+    
+    - name: checking current time
+      command: date
+      register: x  # to store the output of connected modules
+
+    - name: print the value of x
+      debug: var=x
+
+    - name: print only specific output with stdout
+      debug: var=x.stdout
+
+```
+
