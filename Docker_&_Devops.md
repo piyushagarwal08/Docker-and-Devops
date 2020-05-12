@@ -495,3 +495,79 @@ where, inventory file = /etc/ansible/host
 
 ```
 
+* only one debug can run in 1 line and if more then one are given then only the latest will be executed
+
+
+# Kubernetes
+<a href="https://kubernetes.io"> Official Docs </a>
+
+* Container Orchestration ~> A Tool that can manage the various containers in run time
+e.g., Docker SWARM , Dokku , Apache Mesos , Kubernetes(K8S)
+* Every minion should have docker installed
+* Kube-API Server : Present in Master Server
+* Kube-Scheduler
+* Node Controller : Checks the health of minion nodes ~> Has enough resources,add new minion
+* Replication Controller : 
+
+* Kube-Proxy : kube-proxy is a network proxy that runs on each node. in your cluster, implementing part of the Kubernetes Service. concept. kube-proxy maintains network rules on nodes. These network rules allow network communication to your Pods from network sessions inside or outside of your cluster.
+
+* ETCD ~> Database server (most powerfull) ~> Stored the complete status of Minions ~> Stores data in key value pair ~> Runs in Master Node ~> Using NOSQL ~> Brain of Kubernetes
+* Kubeled ~> Daemon that manages all upper services , connects minions with master
+* Kubernetes can not use Docker Networking across Minions as that can cause ip-conflict
+* As a solution we are gonna build our own bridge (Common Bridge Technology) that will be providing ip to each container
+e.g., Calico
+
+
+# Installation of K8S Cluster
+## Type of Installation
+1. Single Node Kubernetes Cluster : Only 1 Physical server with both Master as well as Minion ( Testing purpose )
+<a href="https://www.youtube.com/watch?v=TTzbQdu30YA"> Installation Video </a>
+<a href="https://github.com/redashu/k8s.git"> Installation Docs </a>
+
+2. Multi Node K8S Cluster : platform independent
+    * 1 Master + N Minions
+    * N Master + N Minions
+3. Kubernetes as a Service: Cloud providers like AWS( EKS ),Google(GKE),Azure(AKS),Oracle Cloud(OKE), VMWare Cloud, Alibaba
+
+
+## MiniKube
+* It provides an automated way for Installation of Single Node K8S Cluster
+* It can use VMWare/VirtualBox/KVM/Hyper-V/Docker
+* Download from official docs website
+* Give Execution permission ```chmod +x /usr/bin/minikube```
+* In Linux run ```minikube start --vm-driver=virtualbox``` to start minikube in Linux virtual box
+(25 ~ 30 min to get kubernetes cluster ready)
+* Kubectl(client side software) ~> Can be used using CMD,Powershell,Terminal : A CLI tool to connect with Kubernetes
+
+* ```kubectl get nodes```
+* ```kubectl get nodes --kubeconfig admin.conf```
+* The ```admin.conf``` file can be fetched using ```ip/admin.conf```
+
+
+# POD
+* Created using Docker Image through Kubernetes
+* Applications are executed over ```POD```
+* Architecture  
+Kubectl Communicates with----------> K8S
+                                    Docker
+                                      OS
+* It has IP+MAC+CPU(RAM) with Application
+* A Pod encapsulates an application’s container (or, in some cases, multiple containers), storage resources, a unique network identity (IP address), as well as options that govern how the container(s) should run. 
+
+## Creating POD
+* Can be Created using ```YAML``` and ```JSON```
+* APIVersion,Kind,Metadata,Spec are the keywords required in ```YAML``` file of POD
+* POD file
+```yaml
+apiVersion:v1
+kind: Pod  # here P is caps
+metadata:    # some info about pod
+ name: piyushagarwal    # this is my pod name 
+spec:
+ containers:    # about my docker image and container info
+  - name: pykidc1   # name of my container
+    image: nginx     # image from docker hub (only) it doesn't take from local
+```
+* To run the POD ```kubectl create -f file-name.yml```
+* To check POD ```kubectl get pods```
+* To Delete POD ```kubectl delete pod pod-name```
