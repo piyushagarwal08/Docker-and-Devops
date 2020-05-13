@@ -504,18 +504,19 @@ where, inventory file = /etc/ansible/host
 * Container Orchestration ~> A Tool that can manage the various containers in run time
 e.g., Docker SWARM , Dokku , Apache Mesos , Kubernetes(K8S)
 * Every minion should have docker installed
-* Kube-API Server : Present in Master Server
-* Kube-Scheduler
+* Kube-API Server : Present in Master Server,request send by kubectl are received by it
+* Kube-Scheduler : It receives requests from Kube-APIServer to initialise a POD and it checks for the best MINION to get it done
 * Node Controller : Checks the health of minion nodes ~> Has enough resources,add new minion
 * Replication Controller : 
 
-* Kube-Proxy : kube-proxy is a network proxy that runs on each node. in your cluster, implementing part of the Kubernetes Service. concept. kube-proxy maintains network rules on nodes. These network rules allow network communication to your Pods from network sessions inside or outside of your cluster.
+* Kube-Proxy : kube-proxy is a network proxy that runs on each node. in your cluster, implementing part of the Kubernetes Service. concept. kube-proxy maintains ```network rules``` on nodes. These network rules allow network communication to your Pods from network sessions inside or outside of your cluster.
+```which pod can communicate to which node```
 
 * ETCD ~> Database server (most powerfull) ~> Stored the complete status of Minions ~> Stores data in key value pair ~> Runs in Master Node ~> Using NOSQL ~> Brain of Kubernetes
 * Kubeled ~> Daemon that manages all upper services , connects minions with master
 * Kubernetes can not use Docker Networking across Minions as that can cause ip-conflict
-* As a solution we are gonna build our own bridge (Common Bridge Technology) that will be providing ip to each container
-e.g., Calico
+* As a solution we are gonna build our own bridge (Common Bridge Technology) that will be ```providing ip``` to each container
+e.g., Calico,Flannel,ACL
 
 
 # Installation of K8S Cluster
@@ -571,3 +572,28 @@ spec:
 * To run the POD ```kubectl create -f file-name.yml```
 * To check POD ```kubectl get pods```
 * To Delete POD ```kubectl delete pod pod-name```
+* To get IP Address of POD ```kubectl get pods - wide```
+* To get detailed information about POD ```kubectl describe pods pod-name```
+* To get detailed info about PODS / how to work with them , use command ```kubectl explain pods```
+* To check value of apiVersion ```kubectl explain pods.apiVersion```
+* To check value of kind ```kubectl explain pods.kind```
+* To check value of spec ```kubectl explain pods.spec```
+* To check value of containers ```kubectl explain pods.spec.containers```
+* To create POD file using command
+```kubectl run pod-name --image=image-name --port port-no --dry-run -o yaml```
+* To create POD using command ```kubectl run pod-name --image=imagename --restart Never```
+* Every Minion has a ```Kubelet``` which if accepts the requests from ```Kube Scheduler``` then a POD is initiated in Minion
+
+1. Client Uses ```Kubectl``` : (create POD)
+2. Request get sent to Kube-API Server (Process)
+3. Above Request is send to Kube-Scheduler : Search for best minion to get pod running
+4. Kube Scheduler sends request to ```Kubelet``` of one of the minions
+5. If above request is processed successfully then information regarding complete deployment,current status is sent back to API Server.
+
+## Create vs Apply
+* Create always makes a new POD
+* Apply will check if its present or not
+    1. If present then update it (if possible)
+    2. Else create it
+
+Note: A running POD can not be updated with a port number
