@@ -499,32 +499,52 @@ where, inventory file = /etc/ansible/host
 
 
 # Kubernetes
+* Designed by ```Google``` using ```GO Language``` introduced in around 2014.
+* This product was donated to CNCF and is pure open-source
 <a href="https://kubernetes.io"> Official Docs </a>
 
-* Container Orchestration ~> A Tool that can manage the various containers in run time
+## Things required to be Taken Care in Production
+1. Security
+2. Downtime
+3. Upgradation ~> process must be smooth
+4. Portability(with respect to Code) + Migration(with respect to complete server)
+5. AutoScaling
+6. Superfast Deployment ( Easy to Deploy )
+
+
+
+## Architecture and Components of Kubernetes
+* Requirement:
+    1. Master ~> Linux Bases
+    2. Minions ~> Linux or Windows
+* <u>Control-Plane</u> ~> All the components discussed below are together called the ```Control Plane Components```
+* <u>Container Orchestration</u> ~> A Tool that can manage the various containers in run time
 e.g., Docker SWARM , Dokku , Apache Mesos , Kubernetes(K8S)
 * Every minion should have docker installed
-* Kube-API Server : Present in Master Server,request send by kubectl are received by it
-* Kube-Scheduler : It receives requests from Kube-APIServer to initialise a POD and it checks for the best MINION to get it done
-* Node Controller : Checks the health of minion nodes ~> Has enough resources,add new minion
-* Replication Controller : 
+* <u>Kubernetes-Cluster</u> : Combination of Master and Minions all together
+* <u>Kube-API Server</u> : Present in Master Server,request send by kubectl are received by it thus it acts as an ```end-point``` for management or any other activity over Kubernetes-Cluster
+* <u>Kube-Scheduler</u> : It receives requests from ```Kube-APIServer``` to initialise a POD and it checks for the best MINION to get it done (by usings reports taken from ```Node Controller```) and schedule the task
+* <u>Node Controller</u> : Checks the health of minion nodes ~> Has enough resources,add new minion at real time,disconnect minion
+* <u>Replication Controller</u> : It connects with ```Kube-Scheduler``` to maintain and initialise a count of containers decided at the beginning.Basically it keeps a count of ```no. of containers launched per image```
 
-* Kube-Proxy : kube-proxy is a network proxy that runs on each node. in your cluster, implementing part of the Kubernetes Service. concept. kube-proxy maintains ```network rules``` on nodes. These network rules allow network communication to your Pods from network sessions inside or outside of your cluster.
-```which pod can communicate to which node```
+* <u>Kube-Proxy</u> : kube-proxy is a network proxy that runs on each node in your cluster and maintains ```network rules``` on nodes. These network rules allow network-communication between your Pods from network sessions inside or outside of your cluster that is kube-proxy decided as ```which pod can communicate to which node```
 
-* ETCD ~> Database server (most powerfull) ~> Stored the complete status of Minions ~> Stores data in key value pair ~> Runs in Master Node ~> Using NOSQL ~> Brain of Kubernetes
-* Kubeled ~> Daemon that manages all upper services , connects minions with master
+* <u>ETCD</u> : 
+    1. Database server (most powerfull) ~> Stored the complete status(Healthy/Unhealthy/UP/Down/Running) of Minions ~> Stores data in key:value pair ~> Runs in Master Node ~> Using NOSQL ~> Brain of Kubernetes(most important)
+    2. It can be made separetly outside from Kubernetes-Cluster thus it is not a part of ```Kubernetes Control Plane```
+    3. It gets its data(Input) through ```KubeAPIServer```
+* <u>Kubelet</u> ~> It is the end-point of communication present in all the minions.Any communication done by KubeAPIServer is done through Kubelet as it communicates any/all information from inside the minion(Docker Engine/Pods) to outside world
 * Kubernetes can not use Docker Networking across Minions as that can cause ip-conflict
-* As a solution we are gonna build our own bridge (Common Bridge Technology) that will be ```providing ip``` to each container
-e.g., Calico,Flannel,ACL
+* As a solution we are gonna build our own bridge (Common Bridge Technology) that will be connected to each ```Docker Engine``` and will be  ```providing ip``` to each container
+* Even the Master Node will also be connected with the above ```CBT```
+e.g., ```Calico```,Flannel,ACL,CiscoASI,Calloin,Weave
 
 
 # Installation of K8S Cluster
 ## Type of Installation
 1. Single Node Kubernetes Cluster : Only 1 Physical server with both Master as well as Minion ( Testing purpose )
-<a href="https://www.youtube.com/watch?v=TTzbQdu30YA"> Installation Video </a>
-<a href="https://github.com/redashu/k8s.git"> Installation Docs </a>
-
+    * <a href="https://www.youtube.com/watch?v=TTzbQdu30YA"> Installation Video </a>
+    * <a href="https://github.com/redashu/k8s.git"> Installation Docs </a>
 2. Multi Node K8S Cluster : platform independent
     * 1 Master + N Minions
     * N Master + N Minions
@@ -539,11 +559,11 @@ e.g., Calico,Flannel,ACL
 * In Linux run ```minikube start --vm-driver=virtualbox``` to start minikube in Linux virtual box
 (25 ~ 30 min to get kubernetes cluster ready)
 * Kubectl(client side software) ~> Can be used using CMD,Powershell,Terminal : A CLI tool to connect with Kubernetes
-
-* ```kubectl get nodes```
-* ```kubectl get nodes --kubeconfig admin.conf```
-* The ```admin.conf``` file can be fetched using ```ip/admin.conf```
-
+* Minikube provides self authentication where as for master access deployed on AWS we need ```admin.conf``` that can be get using ```wget http://master-ip/admin.cnf```
+* And we need to change the server private ip of ```admin.cnf``` to an public ip.
+* To get list of working nodes: ```kubectl get nodes``` 
+* To get list of working nodes for all nodes through master: ```kubectl get nodes --kubeconfig admin.conf```
+* To get access of minikube, we can run ```minikube ssh```
 
 # POD
 * Created using Docker Image through Kubernetes
@@ -552,6 +572,7 @@ e.g., Calico,Flannel,ACL
 Kubectl Communicates with----------> K8S
                                     Docker
                                       OS
+* When Docker creates container it attaches IP,MAC,CPU,RAM etc but when K8S creates container using Docker, then it doesn't attach those things through docker and rather get it done by itself
 * It has IP+MAC+CPU(RAM) with Application
 * A Pod encapsulates an application’s container (or, in some cases, multiple containers), storage resources, a unique network identity (IP address), as well as options that govern how the container(s) should run. 
 
@@ -564,25 +585,32 @@ apiVersion:v1
 kind: Pod  # here P is caps
 metadata:    # some info about pod
  name: piyushagarwal    # this is my pod name 
+ labels:           
+  x: y     # label is important if you want traffic to reach to specific port and it gets unique key:value
 spec:
  containers:    # about my docker image and container info
   - name: pykidc1   # name of my container
     image: nginx     # image from docker hub (only) it doesn't take from local
+    ports:
+     - containerPort: 80  # same as expose in Dockerfile
 ```
 * To run the POD ```kubectl create -f file-name.yml```
 * To check POD ```kubectl get pods```
-* To Delete POD ```kubectl delete pod pod-name```
-* To get IP Address of POD ```kubectl get pods - wide```
+* To Delete POD ```kubectl delete pod pod-name``` or ```kubectl delete pods --all```
+* To watch live status of PODs ```kubectl get pods -w```
+* To get IP Address of POD ```kubectl get pods -o wide```
 * To get detailed information about POD ```kubectl describe pods pod-name```
-* To get detailed info about PODS / how to work with them , use command ```kubectl explain pods```
+* To get detailed info about PODS / how to work with them , use command ```kubectl explain pods```, it justs like ```man``` for linux
 * To check value of apiVersion ```kubectl explain pods.apiVersion```
 * To check value of kind ```kubectl explain pods.kind```
 * To check value of spec ```kubectl explain pods.spec```
 * To check value of containers ```kubectl explain pods.spec.containers```
-* To create POD file using command
-```kubectl run pod-name --image=image-name --port port-no --dry-run -o yaml```
+* To check output, but not actually bring any changes we use the command ```--dry-run```
+* To create POD file using command and not create POD itself
+```kubectl run pod-name --image=image-name --port port-no --restart Never --dry-run -o yaml```
 * To create POD using command ```kubectl run pod-name --image=imagename --restart Never```
-* Every Minion has a ```Kubelet``` which if accepts the requests from ```Kube Scheduler``` then a POD is initiated in Minion
+* To check pod label ```kubectl get pods --show-labels```
+* Every Node (Minion/Master) has a ```Kubelet``` which is the point communication between nodes , if it accepts the requests from ```Kube Scheduler``` then the request will be sent to Docker Engine and a container will be initialised
 
 1. Client Uses ```Kubectl``` : (create POD)
 2. Request get sent to Kube-API Server (Process)
@@ -597,3 +625,45 @@ spec:
     2. Else create it
 
 Note: A running POD can not be updated with a port number
+
+
+# Service
+* IP address of a pod / application running inside a pod can not be accessed from outside the Kubernetes Cluster
+* Service ~> They have static ip and it identifies ports using
+    1. IP (less efficient due to dynamic ip)
+    2. Name
+    3. Labels (key:value)
+* Services is of 4 types:
+    1. ClusterIP
+    2. NodePort : user use nodeport that assigns a unique port(randomly generated) to service ip which can further access the applications
+    3. LoadBalancer
+    4. External Name
+* Service ip is not reachable to outside user
+* User can only access Master-Ip(not recommended) or Worker IP
+
+## Creating Service
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+ name: myservice1
+
+spec:
+ ports:
+  - name: mysvcport    # optional field
+    port: 1122     # this is must and is the port of service IP
+    targetPort: 80  # this much match the port number of POD
+    protocol: TCP    # optional field
+ selector:
+  x: hello    # this label must be same as pod label to which traffic is to be forwarded
+ type: NodePort
+```
+
+* to create the service file ```kubectl create -f service-file.yaml```
+* To get list of services ```kubectl get services```
+
+
+
+
+
+

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Pod 
+metadata:   
+ name: piyushagarwal   
+spec:
+ containers:  
+  - name: pykidc1  
+    image: nginx   
