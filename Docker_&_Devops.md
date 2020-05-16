@@ -661,7 +661,8 @@ spec:
 
 * to create the service file ```kubectl create -f service-file.yaml```
 * To get list of services ```kubectl get services```
-
+* kubectl run ashupod2 --image=nginx --port 80 --restart Never
+* To run a service without yaml file, we run ```kubectl create service nodeport mypod2s1 --tcp 80 ```
 
 
 
