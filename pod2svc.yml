@@ -3,14 +3,14 @@ kind: Service
 metadata:
   creationTimestamp: null
   labels:
-    app: mypod2s1
-  name: mypod2s1
+    app: mypod2s10
+  name: mypod2s10
 spec:
   ports:
   - name: "80"
-    port: 80
+    port: 81
     protocol: TCP
-    targetPort: 80
+    targetPort: 81
   selector:
     run: piyush2
   type: NodePort

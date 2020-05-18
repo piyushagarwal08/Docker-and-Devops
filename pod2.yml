@@ -3,14 +3,14 @@ kind: Pod
 metadata:
   creationTimestamp: null
   labels:
-    run: piyush2
-  name: piyush2
+    run: piyush20
+  name: piyush20
 spec:
   containers:
   - image: nginx
-    name: piyush2
+    name: piyush20
     ports:
-    - containerPort: 80
+    - containerPort: 81
     resources: {}
   dnsPolicy: ClusterFirst
   restartPolicy: Never
