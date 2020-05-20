@@ -65,7 +65,7 @@
     ```docker network create network-name```
 
 
-```
+```yaml
 FROM java
 maintainer piyush
 env classname=devops
@@ -80,7 +80,8 @@ CMD java devops
 ```
 
 <u> CMD </u>
-```
+
+```yaml
 FROM alpine
 maintainer piyush
 cmd cal
@@ -88,7 +89,8 @@ cmd cal
 * If we give some command then it runs it else runs the pre defined command
 
 <u> EntryPoint </u>
-```
+
+```yaml
 FROM alpine
 maintainer piyush
 Entrypoint cal
@@ -503,6 +505,7 @@ where, inventory file = /etc/ansible/host
 * This product was donated to CNCF and is pure open-source
 <a href="https://kubernetes.io"> Official Docs </a>
 
+
 ## Things required to be Taken Care in Production
 1. Security
 2. Downtime
@@ -514,6 +517,7 @@ where, inventory file = /etc/ansible/host
 
 
 ## Architecture and Components of Kubernetes
+* Anything which makes our application run are called ```API-Resources``` such as PODS and Services
 * Requirement:
     1. Master ~> Linux Bases
     2. Minions ~> Linux or Windows
@@ -610,6 +614,10 @@ spec:
 ```kubectl run pod-name --image=image-name --port port-no --restart Never --dry-run -o yaml```
 * To create POD using command ```kubectl run pod-name --image=imagename --restart Never```
 * To check pod label ```kubectl get pods --show-labels```
+* To check the logs of POD ```kubectl logs pod-name```
+* To get a list of API-Resources ```kubectl api-resources```
+* To get a list of RC ```kubectl get rc```
+* To delete everything(service,pods,rc) ```kubectl delete all --all```
 * Every Node (Minion/Master) has a ```Kubelet``` which is the point communication between nodes , if it accepts the requests from ```Kube Scheduler``` then the request will be sent to Docker Engine and a container will be initialised
 
 1. Client Uses ```Kubectl``` : (create POD)
@@ -665,7 +673,156 @@ spec:
 * To run a service without yaml file, we run ```kubectl create service nodeport mypod2s1 --tcp 80 ```
 * To access a website running pod, use url as ```http://minikube_internal_ip:svc_port```
 
+## Best way to write a Service-Pod file 
+```yaml
+# pod file
+apiVersion:v1
+kind: Pod  # here P is caps
+metadata:    # some info about pod
+ name: piyushagarwal    # this is my pod name 
+ labels:           
+  x: y     # label is important if you want traffic to reach to specific port and it gets unique key:value
+spec:
+ containers:    # about my docker image and container info
+  - name: pykidc1   # name of my container
+    image: nginx     # image from docker hub (only) it doesn't take from local
+    ports:
+     - containerPort: 80  # same as expose in Dockerfile
+    env:   # this must be the same variable that we define in dockerfile
+     - name: color
+       value: yellow
+
+---
+# service file
+apiVersion: v1
+kind: Service
+metadata:
+ name: myservice1
+
+spec:
+ ports:
+  - name: mysvcport    # optional field
+    port: 1122     # this is must and is the port of service IP
+    targetPort: 80  # this much match the port number of POD
+    protocol: TCP    # optional field
+ selector:
+  x: hello    # this label must be same as pod label to which traffic is to be forwarded
+ type: NodePort
+ ```
+ * ```kubectl expose pods svc-name --type NodePort --port 80```
+ * ```kubectl get svc service-name export -o yaml > file.yaml```
+*  ```kubectl expose pods svc-name --type LoadBalancer --port 80```
+
+
+* To Replace Entrypoint Parent Process in POD
+```yaml
+apiVersion:v1
+kind: Pod  # here P is caps
+metadata:    # some info about pod
+ name: piyushagarwal    # this is my pod name 
+ labels:           
+  x: y     # label is important if you want traffic to reach to specific port and it gets unique key:value
+spec:
+ containers:    # about my docker image and container info
+  - name: pykidc1   # name of my container
+    image: nginx     # image from docker hub (only) it doesn't take from local
+    command: ["/bin/sh","-c","cal"]  # command can replace parent process of entrypoint in image
+```
+* To connect to pod ```kubectl exec -it podname sh```
+
+## Replication Controller
+* Required how many pods you want to be handled
+* Creating my RC file
+```yaml
+apiVersion: v1
+kind: ReplicationController
+metadata:
+ name: myrcpiyush
+ labels:
+  app: web1 # this is the label of RC not label of pods
+
+spec:
+ replicas: 1 # always one pod will be present even in case of current worker node failure, how many pods you want alive
+ template:
+  metadata:
+   name: mypod1 # podname created by RC
+   labels:
+    x: hellopod
+   spec:
+    containers:    # about my docker image and container info
+  - name: pykidc1   # name of my container
+    image: nginx
+
+```
+* Creatinf 2 Replicas
+```yaml
+apiVersion: v1
+kind: ReplicationController
+metadata:
+ name: myrcpiyush
+ labels:
+  app: web1 # this is the label of RC not label of pods
+
+spec:
+ replicas: 2 # always one pod will be present even in case of current worker node failure, how many pods you want alive
+ template:
+  metadata:
+   name: mypod1 # podname created by RC
+   labels:
+    x: hellopod
+   spec:
+    containers:    # about my docker image and container info
+  - name: pykidc1   # name of my container
+    image: nginx
+
+```
+* To increase the no of replicas ```kubectl scale rc replication-name --replicas=count-of-pods```
+* We can edit the Repication Controller file as well ```kubectl edit rc rc-name```
+
+## Replica Set
+```yaml
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+ name: myrs1
+ labels:
+  app: web1 # this is the label of RC not label of pods
+
+spec:
+ selector:
+  matchLabels:
+   x: hellors      # here also label of pod
+ replicas: 2 # always one pod will be present even in case of current worker node failure, how many pods you want alive
+ template:
+  metadata:
+   name: mypod1 # podname created by RC
+   labels:
+    x: hellors
+   spec:
+    containers:    # about my docker image and container info
+  - name: pykidc1   # name of my container
+    image: nginx
+    ports:
+     - containerport: 80
+
+```
+* For help with replicaset ```kubectl explain rs.kind```
 
 
 
 
+## Exam Prep
+* <a href="http://3.218.1.117/admin.conf">Admin Conf file</a>
+* Download file and change the ip to ```http://3.218.1.117:6443```
+* Port Range: 3000 ~ 32767 for NodePort
+* Practice for Multi App Based Dockerfile
+* Expose , LoadBalancer, ENV
+
+
+
+# Kubernetes Volume
+* Can be created inside worker node
+* Can be made outside and attached to any worker node or specific pod using ```hostPATH```
+* ```EmptyDir``` is a type of storage which is associated with the worker node and is fast and efficient storage type used for temporary purposes
+* Various Storage protocols ```NFS , CEPH, GES, CINDER```
+ 
