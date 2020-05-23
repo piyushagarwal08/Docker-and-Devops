@@ -826,7 +826,7 @@ spec:
 
 ```
 * For help with replicaset ```kubectl explain rs.kind```
-
+* Not preferred with Production because of downtime
 
 
 
@@ -911,3 +911,71 @@ spec:
   restartPolicy: Always
 status: {}
 ```  
+
+# Namespace
+* Creates different regions / isolated regions for PODs to be deployed
+* There are 4 types of Namespace by default:
+  1. Default  ~> Generally all PODS are default
+  2. Kube-system ~> Control Plane components and ETCD
+  3. Kube-public ~> 
+  4. Kube.Node.lease
+* To check available namespaces ```kubectl get ns```
+* To check pods in available namespace ```kubectl get po -n namespace-name```
+* To create a new namespace ```kubectl create namespace namespace-name```
+* To create pod in specific namespace ```kubectl run pod-name --image=image-name -n namespace-name```
+* NameSpace in ```yaml``` file is listed in metadata as
+```yaml
+metadata:
+ namespace: name-space-name
+ name: anything
+```
+* Best way to deploy any application is to create a namespace
+* Api-resources that are not binded with namespace are:
+  1. Nodes ~> Master/Worker
+  2. Namespace
+  3. persistent volumes
+* To get list of api-resources binded or not binded with namespace using command ```kubectl api-resources --namespaced=false```
+* To delete a specific namespace, first need is to empty the data/pods in particular namespace
+
+
+# Deployment
+* <a href="https://github.com/redashu/k8s">Blog</a>
+* One new version is configured
+  1. Stops taking new connections for specific pod
+  2. Serve the existing connections unless they leave
+  3. once pod connections are 0 , it destroys it and create the new upgraded pod
+* Repeat above 3 steps for each Pod
+* This strategy of upgrades is known as ```Rolling Updates``` and can help with ```RollBacks```
+* Example
+```bash
+mkdir /tmp/dep
+cat << EOF >> v1.html
+<h1> Hello Deployment </h1>
+EOF
+cat <<EOF >> Dockerfile
+FROM nginx
+MAINTAINER pykid
+COPY v1.html /usr/share/nginx/index.html
+EOF
+cp v1.html v2.html
+echo "<h1> Hello Deployment </h1>" > v2.html
+cat <<EOF >> Dockerfile2
+FROM nginx
+MAINTAINER pykid
+COPY v2.html /usr/share/nginx/index.html
+EOF
+docker build -t pykid/deployment:v1 .
+docker build -t pykid/deployment:v2 -f Dockerfile2 .
+docker login
+docker push pykid/deployment:v1
+```
+* To create deployment ```kubectl create deployment deployment-name --image=pykid/deployment:v1 -o yaml > dep1.yaml```
+* Add your name space in above file
+* Create svc in same namespace ```kubectl expose deployment-name --port 80 -n namespace-name```
+* To scale number of pods (increase no of pods) ```kubectl scale deployment deployment-name --replicas=3 -n namespace-name```
+* Fore more info ```kubectl describe deployment.apps deployment-name -n namespace``` 
+* To upgrade your file, just re apply the POD with changes
+* To check Rollout history, run command ```kubectl rollout history deployment deployment-name -n namespace-name```
+* To rollback to previous version ```kubectl rollout undo deployment deployment-name -n namespace-name```
+* To rollback to specific ```revision``` or we can say ```version``` of our ```deployment```, run command ```kubectl rollout undo deployment deployment-name -n namespace-name --to-revision=revision-no```
+
