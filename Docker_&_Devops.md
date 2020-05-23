@@ -357,6 +357,17 @@ docker run -itd --name jenkins1 -p 8080:8080 -v /var/jenkins_home ticketfly/jenk
 * By default, jenkins and docker can not communicate with each other
 * These both are daemons access to admin over an operating system but not connected together
 * To configure communication between both, add jenkins user to docker group by ```sudo usermod -aG docker jenkins```
+* restart jenkins ```systemctl restart jenkins```
+* Plugins Required:
+  1. CloudBees Docker Build and Publish ~> Select & install without restart (most important)
+  2. Docker build step
+  3. Yet another docker
+  4. Image Tag parameter
+  5. Docker
+* Docker Publish and Build
+  1. Add image name such as ```pykid/firstimage```
+  2. Add image tag such as ```v1```
+  3. Add docker hub credentials
 
 ## Project
 * To start any project in jenkins or use its CI/CD service , we have following general steps:
@@ -367,16 +378,24 @@ docker run -itd --name jenkins1 -p 8080:8080 -v /var/jenkins_home ticketfly/jenk
     4. Set / Build trigers
     5. Click on Build Now in left panel
 * The status of success/failure/pending is displayed through weather emoji's ```sunny the better```
-* Poll SCM ~> It is a service that can be configured in jenkins panel which lets the jenkin keep a check of git repo update at specific interval of time
+* Jenkins can be connected to multiple host docker engines using ansible
 
+### Post Build Project
+* It is used to Build or trigger another Project made using Jenkins
+
+## Jenkins with Github
+* Select SCM as Git
+* Provide Your public github profile url
+* If private repo is being used then provide your credentials
+
+## To build trigger scheduling
+* Select Poll SCM
+* Poll SCM ~> It is a service that can be configured in jenkins panel which lets the jenkin keep a check of git repo update at specific interval of time
+* use Crontab Syntax for scheduling
 * Crontab Syntax ```minutes hr date month day```
 * Example for every month at 9:30 ```30 9 1 * * ```
 * Every 15 minute   ```*/15 * * * *```
 * Every minute ```* * * * *```
-
-
-* Jenkins can be connected to multiple host docker engines using ansible
-
 
 # Ansible 
 * It can be used to automate
@@ -615,7 +634,7 @@ spec:
 * To create POD using command ```kubectl run pod-name --image=imagename --restart Never```
 * To check pod label ```kubectl get pods --show-labels```
 * To check the logs of POD ```kubectl logs pod-name```
-* To get a list of API-Resources ```kubectl api-resources```
+* To get a list of API-Resources ```kubectl api-resources``` where API-Resources refers to all the services and commands like ```nodes,pods```
 * To get a list of RC ```kubectl get rc```
 * To delete everything(service,pods,rc) ```kubectl delete all --all```
 * Every Node (Minion/Master) has a ```Kubelet``` which is the point communication between nodes , if it accepts the requests from ```Kube Scheduler``` then the request will be sent to Docker Engine and a container will be initialised
@@ -709,9 +728,9 @@ spec:
   x: hello    # this label must be same as pod label to which traffic is to be forwarded
  type: NodePort
  ```
- * ```kubectl expose pods svc-name --type NodePort --port 80```
- * ```kubectl get svc service-name export -o yaml > file.yaml```
-*  ```kubectl expose pods svc-name --type LoadBalancer --port 80```
+* To create a service of pod with type NodePort: ```kubectl expose pod pod-name --type NodePort --port 80```
+* To get yaml file of already created service ```kubectl get svc service-name export -o yaml > file.yaml```
+* To create service of existing pod with type LoadBalancer  ```kubectl expose pod pod-name --type LoadBalancer --port 80```
 
 
 * To Replace Entrypoint Parent Process in POD
@@ -754,7 +773,7 @@ spec:
     image: nginx
 
 ```
-* Creatinf 2 Replicas
+* Creating 2 Replicas
 ```yaml
 apiVersion: v1
 kind: ReplicationController
@@ -817,7 +836,10 @@ spec:
 * Port Range: 3000 ~ 32767 for NodePort
 * Practice for Multi App Based Dockerfile
 * Expose , LoadBalancer, ENV
-
+* To Access:
+  1. ssh username@3.218.1.117
+  2. Password: username
+  3. kubectl config use-context username-context
 
 
 # Kubernetes Volume
@@ -826,3 +848,66 @@ spec:
 * ```EmptyDir``` is a type of storage which is associated with the worker node and is fast and efficient storage type used for temporary purposes
 * Various Storage protocols ```NFS , CEPH, GES, CINDER```
  
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestap: null
+  labels:
+    run: alpod1 # label of pod
+    x: hello # pod can have more than one label to make this unique
+  name: alpod1 
+spec:
+ volumes: # this is for creating volume of any type
+ - name: ashuvol111   # name of volume
+   emptyDir: {}  # it will create a temp and random folder in worker node and if u delete pod it will be deleted
+  containers:
+  - image: alpine
+    name: alpod1
+    volumeMounts:
+    - name: ashubol111  # name of volume to be mounted from above section
+      mountPath: /mnt/data/  # this folder will be created automatically for mounting purpose 
+    command: ["/bin/sh","-c","while true; do date >> /mnt/data/output.txt; sleep 2;done"]
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```  
+
+## HostPath
+* It can mount any file,directory or socker file in any worker node
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestap: null
+  labels:
+    run: alpod1 # label of pod
+    x: hello # pod can have more than one label to make this unique
+  name: alpod1 
+spec:
+ volumes: # this is for creating volume of any type
+ - name: ashuvol111   # name of volume
+   hostPath:    # it will create volume on the scheduled minion
+    path: /etc/passwd # file in any linux based os where usernames are stored
+    type: File   # path is a file
+ - name: ashuvol12   # name of volume
+   hostPath:    # it will create volume on the scheduled minion
+    path: /usr/share/application/ # file in any linux based os where usernames are stored
+    type: Directory   # path is a file
+ - name: ashuvol13   # name of volume
+   hostPath:    # it will create volume on the scheduled minion
+    path: /var/run/docker.sock # file in any linux based os where usernames are stored
+    type: Socket    # path is a file
+  containers:
+  - image: alpine
+    name: alpod1
+    volumeMounts:
+    - name: ashubol111  # name of volume to be mounted from above section
+      mountPath: /usr/share/nginx/html/index.html  # mounting a file
+    command: ["/bin/sh","-c","while true; do date >> /mnt/data/output.txt; sleep 2;done"]
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```  
