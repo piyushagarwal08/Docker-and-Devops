@@ -729,7 +729,7 @@ spec:
  type: NodePort
  ```
 * To create a service of pod with type NodePort: ```kubectl expose pod pod-name --type NodePort --port 80```
-* To get yaml file of already created service ```kubectl get svc service-name export -o yaml > file.yaml```
+* To get yaml file of already created service ```kubectl get svc service-name -o yaml > file.yaml```
 * To create service of existing pod with type LoadBalancer  ```kubectl expose pod pod-name --type LoadBalancer --port 80```
 
 
