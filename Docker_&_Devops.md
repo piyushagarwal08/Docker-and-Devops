@@ -915,10 +915,11 @@ status: {}
 # Namespace
 * Creates different regions / isolated regions for PODs to be deployed
 * There are 4 types of Namespace by default:
-  1. Default  ~> Generally all PODS are default
-  2. Kube-system ~> Control Plane components and ETCD
-  3. Kube-public ~> 
-  4. Kube.Node.lease
+  1. Default  ~> Generally all PODS are deployed in this namespace
+  2. Kube-system ~> Control Plane components and ETCD are deployed in this by default
+  3. Kube-public ~> Its like temp folder, every pod inside kube-public is available to all other namespaces
+  4. Kube.Node.lease ~> Backup,maintainence,monitoring of minions . Any application that is going to do this task is deployed in this name-space
+
 * To check available namespaces ```kubectl get ns```
 * To check pods in available namespace ```kubectl get po -n namespace-name```
 * To create a new namespace ```kubectl create namespace namespace-name```
