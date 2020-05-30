@@ -833,7 +833,7 @@ spec:
 ## Exam Prep
 * <a href="http://3.218.1.117/admin.conf">Admin Conf file</a>
 * Download file and change the ip to ```http://3.218.1.117:6443```
-* Port Range: 3000 ~ 32767 for NodePort
+* Port Range: 30000 ~ 32767 for NodePort
 * Practice for Multi App Based Dockerfile
 * Expose , LoadBalancer, ENV
 * To Access:
@@ -979,4 +979,17 @@ docker push pykid/deployment:v1
 * To check Rollout history, run command ```kubectl rollout history deployment deployment-name -n namespace-name```
 * To rollback to previous version ```kubectl rollout undo deployment deployment-name -n namespace-name```
 * To rollback to specific ```revision``` or we can say ```version``` of our ```deployment```, run command ```kubectl rollout undo deployment deployment-name -n namespace-name --to-revision=revision-no```
+
+
+# NodePort vs LoadBalancer
+* Port range is 30000 ~ 32767 for both
+* In Production, we never use Master/Worker node IP
+* EKS Control Plane run in Server which are non-accessible and non-viewable
+* Over EKS , when an LoadBalancer is made for any application then EKS creates one other LoadBalancer machine which costs some extra charges but provides an IP to be accessible
+* When we deploy a loadbalancer svc in K8S managed by us , the External IP is alwasys ```Pending``` because master keeps waiting for it but it doesn't get created
+* LoadBalancer provides us a DNS ( kind of ) over AWS that can used in place of Ip:port
+* The Same given name can be used to generate a proper Web address using Domain provider like GoDaddy
+* DNS provides a web name which is mapped with DNS name provided by LoadBalancer which finally redirects the request to our ip:port and the application will be accessible
+
+
 
