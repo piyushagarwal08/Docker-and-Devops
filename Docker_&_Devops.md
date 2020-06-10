@@ -1098,3 +1098,81 @@ spec:
 
 
 # PV and PVC
+* PV ~> Persistent Volume && PVC ~> Persistent Volume Claim
+* Storage Areas should always be made outside Kubernetes Cluster
+* PV are independent to namespace that is they are not attached to specific namespace
+* PV are used to fetch data from outside cluster
+* PVC is an object created for a particular namespace to claim a PV
+* PVC is of 2 types:
+  1. Static ~> binds a specific PV to a namespace
+  2. Dynamic ~> Randomly binds any PV to a namespace
+* PVC and PV has 1:1 relation that is once a PV is claimed by a specific PVC it can not be claimed by any other.
+* Few points to consider before making PV are:
+  1. Size of PV should be same as storage it is being attached e.g., 1MiB = 1024Kb, 1MB= 1000Kb
+  2. PV consists of 
+    * Storage Size
+    * Storage Class (Reclaim Policy,Type of Storage)
+    * Access Modes ~> How many worker node can use that storage
+    * Source or Provider
+
+* Access Modes are of  types:
+  1. ReadWriteOnce(RWO) ~> can be binded with only one worker node at a time
+  2. ReadWriteMany(RWM) ~> can be binded with multiple or all nodes at a time
+  3. ReadOnlyMode(ROM) ~> can be binded with multiple or all nodes at a time but can only read data
+
+* Reclaim Policy are of 3 types:
+  1. Delete ~> PV is free to be claimed by any other PVC but data will be deleted
+  2. Recycle ~> PV can only be claimed by previous PVC only (Data remains safe)
+  3. Retain ~> PVC will be free for any other PVC and data also remains safe.
+
+* To create yaml file of PV, use the following code
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: piyushpvcname
+spec:
+  capacity:
+    storage: 5Gi   # size of storage in resource
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce   # Accessibilty
+  persistentVolumeReclaimPolicy: Recycle
+  storageClassName: slow  # type aws, azure,slow,fast,go2,hdd
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  nfs:   # source of PV storage
+    path: /tmp   # location of nfs server
+    server: 172.17.0.2   # ip of nfs server
+```
+* To Create a PVC
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: personal-namespace-name
+spec:
+  accessModes:
+    - ReadWriteOnce   # type of PV to attach with
+  resources:
+    requests:
+      storage: 8Gi  # Size of PV to attach with
+  storageClassName: slow  # type of PV
+```
+* In PVC, ```RWX``` stands for Read Write Many
+* To check the created PVC, run command ```kubectl get pvc -n namespace-name```
+* To Attach PVC as volume to a POD
+```yaml
+spec:
+  volumes:
+  - name: piyushvol
+    persistentVolumeClaim:
+      claimName: myclaim
+  containers:
+    volumeMounts:
+    - name: piyushvol
+      mountPath: /mnt/data/
+```
+
+
