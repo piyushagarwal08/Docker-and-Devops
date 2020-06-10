@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: piyush1
+  name: piyush1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: piyush1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: piyush1
+    spec:
+      volumes:
+      - name: piyushvolx
+        emptyDir: {}
+      containers:
+      - image: dockerashu/ckad:v2
+        name: piyushpod1
+        env:
+        - name: color
+          valueFrom:
+           configMapKeyRef:
+            name: piyushcm2   # name of config map
+            key: a
+
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: piyushvolx
+          mountPath: /mnt/data
+        resources: {}
+status: {}

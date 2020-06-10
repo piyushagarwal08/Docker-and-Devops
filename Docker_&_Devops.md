@@ -990,6 +990,111 @@ docker push pykid/deployment:v1
 * LoadBalancer provides us a DNS ( kind of ) over AWS that can used in place of Ip:port
 * The Same given name can be used to generate a proper Web address using Domain provider like GoDaddy
 * DNS provides a web name which is mapped with DNS name provided by LoadBalancer which finally redirects the request to our ip:port and the application will be accessible
+<img src="Packet Flow.png" />
+
+# Config Map
+* It is another api-resource that stores key:value pairs
+* It can be used by any number of Pod,ReplicaSet, RC, DaemonSet independently
+* It is a global variable that can be used inside a namespace
+* To create config map, run command ```kubectl create configmap configmap-name --from-literal x=yellow --from-literal y=blue```
+* To check config map, run command as ```kubectl get cm```
+* It is used Pod Yaml file as:
+```yaml
+env
+- name: color
+  valueFrom:
+   configMapKeyRef:
+    name: config-map-name
+    key: key-which-stores-data-config-map
+```
+* To have multiple environment variables
+```yaml
+env
+- name: color
+  valueFrom:
+   configMapKeyRef:
+    name: config-map-name
+    key: key-which-stores-data-config-map
+env
+- name: color1
+  valueFrom:
+   configMapKeyRef:
+    name: config-map-name-1  # name of configMap
+    key: key-which-stores-data-config-map-1  # Dictionary key-name
+```
+* Config map can also be used as volumes
+* It can inject new variables inside any file that is if we declare a environment variable using config then it will make it inside pod even if it did not exist earlier
+* It can read values from CLI, file as volume or even as template
+* To create config map from a file, ```kubectl create configmap name-config-map --from-file file.extension```
+* The above made config is of volume type
+```yaml
+spec:
+ volumes:
+  name: vol-name   # name of volume to be attached to container
+   configMap:
+    name: config-map-name  # config-map name made from file
+```
+* less secure and less features because using ```kubectl describe cm cm-name``` , one can check the key-value pair values
+
+# Secrets
+* Stores data similar as configmap
+* stores data in encoded format (Base64)
+* Can Store Docker Hub / Registry Credentials
+* Store SSL certificates / TLS
+* To create secret, run command ```kubectl create secret secret-type secret-name --from-literal x=yellow```
+* Secrets are of 3 types:
+  1. docker-registry ~> registry credentials (username/password/server)
+  2. generic ~> basic variables
+  3. tls
+* to create one:
+```yaml
+env:
+- name: color
+  valueFrom:
+   secretKeyRef:
+    name: secret-key-name
+    value: key-name
+```    
+* To create login secret for docker registry, run the command ```kubectl create secret docker-registry azr --docker-username=name --docker-password=password --docker-server=server-name```
+* To pull image from another registry, you need to use login credentials in a secure manner, so for that
+```yaml
+spec:
+ imagePullSecrets:
+ - name: secret-name
+```
+
+### Task
+1. Create a Pod of Mysql
+2. Create a Database named K8S from client without using exec
+3. Create a table named Services and write all the name of services ( Id,Name,Ip-Address)
+
+# User Management
+* In K8S users are of 2 types:
+  1. Management ~> Supposed to authenticate requests for api-resources
+  2. Service-Account ~> Resources like pods/services/rc are created by this user
+
+* Explanation:
+  1. Kubectl connects with KubeApiServer using a default set username and password ( in config file )
+  2. KubeApiServer verifies the received credentials and connects with namespace of specified worker node
+  3. Once request is reached to a particular Namespace, the Service Account user creates the specified resources
+
+* To check the service account name, run command ```kubectl get serviceaccount -n namespace-name```
+* To create namespace, run command ```kubectl create namespace namespace-name```
+* Every ServiceAccount has a secret
+
+# Kubernetes Dashboard
+* To create Kubernetes Dashboard ```kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/aio/deploy/recommended.yaml```
+* To edit svc type ```kubectl edit svc svc-name -n kubernetes-dashboard```
+* Above command will change the live ongoing svc name of kubernetes-dashboard
+* Its not recommended to access dashboard using kubeconfig
+* To get token, run command ```kubectl describe secret kubernetes-dashboard-token -n kubernetes-dashboard```
+
+* To practice <a href="https://github.com/redashu/CKAD-exercises">Exercise Questions </a>
+* Back to <a href="https://slashreboot.blogspot.com/">SlashReboot </a>
+
+* In Minikube, run command ```minikube addons list``` to get a list of features available with minikube
+* To run dashboard using minikube, ```minikube dashboard```
+* In minikube we can not put ~> Cortannus,unschedulable,ETCD can not be maintained, infrastructure can not be maintained, not all security plugins are supported
 
 
-
+# PV and PVC
