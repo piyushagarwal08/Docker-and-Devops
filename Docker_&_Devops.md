@@ -661,7 +661,7 @@ Note: A running POD can not be updated with a port number
     2. Name
     3. Labels (key:value)
 * Services is of 4 types:
-    1. ClusterIP
+    1. ClusterIP ~> used for internal accessing (webserver accesing database)
     2. NodePort : user use nodeport that assigns a unique port(randomly generated) to service ip which can further access the applications
     3. LoadBalancer
     4. External Name
@@ -1103,7 +1103,7 @@ spec:
 * PV are independent to namespace that is they are not attached to specific namespace
 * PV are used to fetch data from outside cluster
 * PVC is an object created for a particular namespace to claim a PV
-* PVC is of 2 types:
+* PVC Binding is of 2 types:
   1. Static ~> binds a specific PV to a namespace
   2. Dynamic ~> Randomly binds any PV to a namespace
 * PVC and PV has 1:1 relation that is once a PV is claimed by a specific PVC it can not be claimed by any other.
@@ -1175,4 +1175,83 @@ spec:
       mountPath: /mnt/data/
 ```
 
+# MicroServices Architecture
+
+<img src="Architecture.png"/>
+Basic Architecture
+
+* Giving unecessary excess amount of resources also could show bad efficiency issues
+* In Micro Services Architecture , tiny OS are created in which single application is deployed like one for Monitor, one for Database
+
+<img src="MicroServices.png"/>
+MicroServices
+
+
+<img src="Kubernetes_Architecture1.png"/>
+Wordpress Based K8S Architecture Basic 01
+
+
+<img src="K8S Architecture WebData.png"/>
+K8S Web Server and Database architecture
+
+To create same architecture:
+1. Create PV for both web and db
+2. Create PVC for both
+3. Create database deployment --mysql(5.6 version) -- supply root password using secret
+```kubectl create secret generic secret-name --from-literal pp=redhat123```
+```kubectl create deploy database-name --image=mysql:5.6 --dry-run=client -o yaml > database.yaml```
+<img src="Database.png"/>
+
+4. Create  webser deployment using wordpress:4.8-apache, run command ```kubectl create deployment wordpress --image=wordpress:4.8-apache --dry-run=client -o yaml > wordpress.yaml```
+  * To store Ip/Name of Database server use env variable ```WORDPRESS_DB_HOST``` with value as service name of database deployment
+  * To Store Wordpress Database password use env variable ```WORDPRESS_DB_PASSWORD```
+  * Database username is ```root``` by default
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: wordpress
+  name: wordpress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordpress
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: wordpress
+    spec:
+      volumes:
+      - name: frontvol   # name of volume we want
+        persistenVolumeClaim:
+          claimName: webclaim  # creating volume using pvc to store application code
+      containers:
+      - image: wordpress:4.8-apache
+        name: wordpress
+        volumeMounts:
+        - name: frontvol
+          mountPath: /var/www/html/    # because wordpress is using apache
+        ports:
+        - containerPort: 80
+        env:
+        - name: WORDPRESS_DB_HOST   # to store ip/name of database server
+          value: appdb   # service name of database deployment
+        - name: WORDPRESS_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: wpdb   # name of secret
+              key: p    # key name
+
+        resources: {}
+status: {}
+```
+
+
+# Kubernetes Security
+* Users
 

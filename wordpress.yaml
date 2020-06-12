@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: wordpress
+  name: wordpress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordpress
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: wordpress
+    spec:
+      volumes:
+      - name: frontvol   # name of volume we want
+        persistenVolumeClaim:
+          claimName: webclaim  # creating volume using pvc to store application code
+      containers:
+      - image: wordpress:4.8-apache
+        name: wordpress
+        volumeMounts:
+        - name: frontvol
+          mountPath: /var/www/html/    # because wordpress is using apache
+        ports:
+        - containerPort: 80
+        env:
+        - name: WORDPRESS_DB_HOST   # to store ip/name of database server
+          value: appdb   # service name of database deployment
+        - name: WORDPRESS_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: wpdb   # name of secret
+              key: p    # key name
+
+        resources: {}
+status: {}
