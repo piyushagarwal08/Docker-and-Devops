@@ -1253,5 +1253,74 @@ status: {}
 
 
 # Kubernetes Security
-* Users
+* Users and namespace binding ~> Being able to only access a specific amount of resources 
+* Limiting resource quota ~> limit the amount of resources that can be used in a particular namespace
+* Kubectle uses https protocol to connect with KubeApiServer over 6443 port no, can be checked using ```kubectl config view``` or reading the file ```config``` which is present in Master Node at ```/etc/kubernetes/```
+* Context ~> Its a combination of information in regards to specific user such as username,namespace,crt file,csr file and few more
+* To check available contexts, run command ```kubectl config get-contexts```
+* To use specific context, run command ```kubectl config use-context context-name```
+
+## Create https protocol from http
+1. Create private key (RSA || DSA)
+2. Generate Certificate Signing Request ~> Integrate Private Key with domain
+3. CSR is submitted to CA company for approval
+4. The Received Certificate of our CA and CRT makes the domain https after proper server configuration
+
+* A Config File contains:
+  1. Username
+  2. Private key
+  3. CSR
+  4. CRT
+  5. CA CSR
+* To Create our own Config file for specific user
+  1. Create a namespace, run command ```kubectl create namespace name-of-namespace```
+  2. Create a private key, run command ```openssl genrsa -out student.key 2048```
+  3. Create CSR, run command ```openssl req -new -key student.key -out student.csr -subj "/CN=student/0=adhocnw"```
+  4. Copy the generated csr file in ```.minikube``` folder
+  5. To Create CRT, run command ```openssl x509 -req -in student.csr -CA /path-of-minikube/ca.crt  -CAkey  path-of-miniube/ca.key  -CAcreateserial -out student.crt  -days 1000```
+  6. Copy generated CRT ```student.crt``` and CRT of minikube ```ca.crt``` to namespace folder
+  7. Setting Credential, run command ```kubectl config set-credentials student --client-certificate=path-of-student.crt  --client-key=path-of-student-key```
+  8. Create Context for user ```kubectl config set-context student-context --cluster=minikube --namespace=college  --username=student```
+  9. Editing the config for our user as <!-- Will code in later -->
+  
+
+  # RBAC
+  * Used to liimit resources to users based on roles
+  ```yaml
+  apiVersion: rbac.authorization.k8s.io/v1   # api version of role
+  kind: Role
+  metadata:
+   name: ashurole1
+   namespace: limited   # user defined
+  
+  rules:
+   - apiGroups: ["v1","apps",""]   # "" refers to compatible to given elements as v1 or apps
+     resources: ["pods","deployments"]  # defines what can be created
+     verbs: ["create","get","watch","update","delete","list"]  # operations that can be used, * for all
+  ```
+* Creating above file will create a role and needs to be binded by a user
+* For Rolebinding
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+ name: rolebinding1
+ namespace: limited
+
+subjects:
+ - kind: User
+   name: default    # name of service account
+
+roleRef:
+ kind: Role
+ name: ashurole1   # Same as Role defined in previous code
+ apiGroup: ""
+```
+* Roles are of 2 types:
+  1. User Role ```kubectl get roles``` ~> RoleBinding is done and this role can not work anything over cluster
+  2. Cluster Role  ```kubectl get clusterroles``` ~> ClusterRoleBinding is done and this role can do things over cluster
+
+* <u>HELM</u> ~> It is a package manager for kubernetes just like yum or apt
+
+
 
