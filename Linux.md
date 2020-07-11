@@ -68,3 +68,17 @@ else
 echo "date does not exist"
 fi
 ```
+
+* In shell we can run commands as ```cmd1;cmd2```
+* ```&&``` and ```&``` both seems to be  true as well but in real scenario what happens in an logical AND operation is performed and multiple commands are not run
+
+* To check input and output of a script use ```bash -x script.extension```
+
+* ```tty``` tells us the file name of terminal and can be used to redirect input/output from one terminal to other
+
+* NetCat is a utility that can be used for Socket, run as ```nc -l 8888```
+* To share video streamming ```nc -l 8888 -k | vlc``` on receiver and ```cat videofile | nc ip-of-receiver 8888```
+
+* grep stands for Global Regular Expression Print.
+* Research about grep and netcap
+
